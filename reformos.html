@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReformOS - リフォーム業務管理システム</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .sidebar-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .badge-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .gantt-chart {
+            position: relative;
+            height: 400px;
+            overflow-x: auto;
+        }
+
+        .gantt-bar {
+            position: absolute;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gantt-bar:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                transition: left 0.3s ease;
+                z-index: 1000;
+            }
+
+            .sidebar.mobile-open {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ==================== データストレージユーティリティ ====================
+        const Storage = {
+            async get(key) {
+                try {
+                    const result = await window.storage.get(key);
+                    return result ? JSON.parse(result.value) : null;
+                } catch (error) {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : null;
+                }
+            },
+
+            async set(key, value) {
+                try {
+                    await window.storage.set(key, JSON.stringify(value));
+                } catch (error) {
+                    localStorage.setItem(key, JSON.stringify(value));
+                }
+            },
+
+            async list(prefix) {
+                try {
+                    const result = await window.storage.list(prefix);
+                    return result ? result.keys : [];
+                } catch (error) {
+                    const keys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith(prefix)) {
+                            keys.push(key);
+                        }
+                    }
+                    return keys;
+                }
+            },
+
+            async delete(key) {
+                try {
+                    await window.storage.delete(key);
+                } catch (error) {
+                    localStorage.removeItem(key);
+                }
+            }
+        };
+
+        // ==================== 認証機能 ====================
+        const AuthContext = React.createContext();
+
+        function AuthProvider({ children }) {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                checkAuth();
+            }, []);
+
+            async function checkAuth() {
+                const savedUser = await Storage.get('currentUser');
+                setUser(savedUser);
+                setLoading(false);
+            }
+
+            async function login(username, password) {
+                // 簡易的な認証（実際は暗号化が必要）
+                const users = await Storage.get('users') || [];
+                const user = users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    await Storage.set('currentUser', user);
+                    setUser(user);
+                    return true;
+                }
+                return false;
+            }
+
+            async function logout() {
+                await Storage.delete('currentUser');
+                setUser(null);
+            }
+
+            async function register(userData) {
+                const users = await Storage.get('users') || [];
+                const newUser = {
+                    id: Date.now().toString(),
+                    ...userData,
+                    createdAt: new Date().toISOString()
+                };
+                users.push(newUser);
+                await Storage.set('users', users);
+                return newUser;
+            }
+
+            return (
+                <AuthContext.Provider value={{ user, login, logout, register, loading }}>
+                    {children}
+                </AuthContext.Provider>
+            );
+        }
+
+        // ==================== ログイン画面 ====================
+        function LoginScreen({ onLogin }) {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [isRegister, setIsRegister] = useState(false);
+            const [error, setError] = useState('');
+
+            const { login, register } = React.useContext(AuthContext);
+
+            async function handleSubmit(e) {
+                e.preventDefault();
+                setError('');
+
+                if (isRegister) {
+                    await register({ username, password, role: 'user' });
+                    alert('登録が完了しました。ログインしてください。');
+                    setIsRegister(false);
+                } else {
+                    const success = await login(username, password);
+                    if (!success) {
+                        // デフォルトユーザーを作成
+                        if (username === 'admin' && password === 'admin') {
+                            await register({ username: 'admin', password: 'admin', role: 'admin' });
+                            await login('admin', 'admin');
+                        } else {
+                            setError('ユーザー名またはパスワードが正しくありません');
+                        }
+                    }
+                }
+            }
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="glass-effect rounded-2xl shadow-2xl p-8 w-full max-w-md animate-slide-in">
+                        <h1 className="text-4xl font-bold gradient-text mb-2 text-center">ReformOS</h1>
+                        <p className="text-gray-600 text-center mb-8">リフォーム業務管理システム</p>
+                        
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2 text-gray-700">ユーザー名</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    placeholder="ユーザー名を入力"
+                                    required
+                                />
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold mb-2 text-gray-700">パスワード</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="パスワードを入力"
+                                    required
+                                />
+                            </div>
+
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button type="submit" className="btn-primary w-full mb-4">
+                                {isRegister ? '新規登録' : 'ログイン'}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsRegister(!isRegister)}
+                                className="text-sm text-gray-600 hover:text-gray-800 w-full"
+                            >
+                                {isRegister ? 'ログインに戻る' : '新規登録はこちら'}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <p className="text-xs text-gray-500 text-center">
+                                デモ用アカウント: admin / admin
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== メインアプリケーション ====================
+        function App() {
+            const { user, logout, loading } = React.useContext(AuthContext);
+            const [currentPage, setCurrentPage] = useState('dashboard');
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-white text-2xl">読み込み中...</div>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                return <LoginScreen />;
+            }
+
+            const menuItems = [
+                { id: 'dashboard', icon: '📊', label: 'ダッシュボード' },
+                { id: 'customers', icon: '👥', label: '顧客管理' },
+                { id: 'quotations', icon: '💰', label: '見積作成' },
+                { id: 'schedule', icon: '📅', label: '工程管理' },
+                { id: 'photos', icon: '📸', label: '現場写真' },
+                { id: 'inventory', icon: '📦', label: '在庫管理' },
+                { id: 'chatbot', icon: '🤖', label: 'AIチャット' },
+            ];
+
+            return (
+                <div className="min-h-screen flex">
+                    {/* サイドバー */}
+                    <div className={`w-64 glass-effect p-6 ${isMobileMenuOpen ? 'mobile-open' : ''} sidebar`}>
+                        <div className="mb-8">
+                            <h1 className="text-2xl font-bold gradient-text">ReformOS</h1>
+                            <p className="text-sm text-gray-600 mt-1">{user.username}</p>
+                        </div>
+
+                        <nav className="space-y-2">
+                            {menuItems.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => {
+                                        setCurrentPage(item.id);
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                                        currentPage === item.id
+                                            ? 'sidebar-active'
+                                            : 'hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <span className="text-xl">{item.icon}</span>
+                                    <span className="font-medium">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+
+                        <button
+                            onClick={logout}
+                            className="w-full mt-8 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
+                        >
+                            ログアウト
+                        </button>
+                    </div>
+
+                    {/* メインコンテンツ */}
+                    <div className="flex-1 p-6 overflow-auto">
+                        {/* モバイルメニューボタン */}
+                        <button
+                            className="md:hidden mb-4 px-4 py-2 bg-white rounded-lg shadow"
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        >
+                            ☰ メニュー
+                        </button>
+
+                        {currentPage === 'dashboard' && <Dashboard />}
+                        {currentPage === 'customers' && <Customers />}
+                        {currentPage === 'quotations' && <Quotations />}
+                        {currentPage === 'schedule' && <Schedule />}
+                        {currentPage === 'photos' && <Photos />}
+                        {currentPage === 'inventory' && <Inventory />}
+                        {currentPage === 'chatbot' && <Chatbot />}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== ダッシュボード ====================
+        function Dashboard() {
+            const [stats, setStats] = useState({
+                customers: 0,
+                projects: 0,
+                quotations: 0,
+                revenue: 0
+            });
+
+            useEffect(() => {
+                loadStats();
+            }, []);
+
+            async function loadStats() {
+                const customers = await Storage.get('customers') || [];
+                const projects = await Storage.get('projects') || [];
+                const quotations = await Storage.get('quotations') || [];
+                
+                const revenue = quotations.reduce((sum, q) => sum + (q.totalAmount || 0), 0);
+
+                setStats({
+                    customers: customers.length,
+                    projects: projects.length,
+                    quotations: quotations.length,
+                    revenue
+                });
+            }
+
+            const statCards = [
+                { label: '顧客数', value: stats.customers, icon: '👥', color: 'bg-blue-500' },
+                { label: '進行中案件', value: stats.projects, icon: '📋', color: 'bg-green-500' },
+                { label: '見積件数', value: stats.quotations, icon: '💰', color: 'bg-purple-500' },
+                { label: '総売上', value: `¥${stats.revenue.toLocaleString()}`, icon: '💴', color: 'bg-yellow-500' },
+            ];
+
+            return (
+                <div className="animate-slide-in">
+                    <h2 className="text-3xl font-bold gradient-text mb-6">ダッシュボード</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        {statCards.map((stat, index) => (
+                            <div key={index} className="stat-card hover-lift">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center text-2xl`}>
+                                        {stat.icon}
+                                    </div>
+                                </div>
+                                <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
+                                <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="stat-card">
+                            <h3 className="text-xl font-bold mb-4">最近の活動</h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <span className="text-2xl">📝</span>
+                                    <div>
+                                        <p className="font-medium">新規見積作成</p>
+                                        <p className="text-sm text-gray-500">2時間前</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <span className="text-2xl">👤</span>
+                                    <div>
+                                        <p className="font-medium">顧客登録</p>
+                                        <p className="text-sm text-gray-500">5時間前</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <span className="text-2xl">📸</span>
+                                    <div>
+                                        <p className="font-medium">現場写真アップロード</p>
+                                        <p className="text-sm text-gray-500">1日前</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <h3 className="text-xl font-bold mb-4">今月の目標達成率</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm font-medium">受注目標</span>
+                                        <span className="text-sm font-bold">75%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full" style={{width: '75%'}}></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm font-medium">売上目標</span>
+                                        <span className="text-sm font-bold">60%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full" style={{width: '60%'}}></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-sm font-medium">顧客満足度</span>
+                                        <span className="text-sm font-bold">92%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-3 rounded-full" style={{width: '92%'}}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== 顧客管理 ====================
+        function Customers() {
+            const [customers, setCustomers] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [showModal, setShowModal] = useState(false);
+            const [editingCustomer, setEditingCustomer] = useState(null);
+
+            useEffect(() => {
+                loadCustomers();
+            }, []);
+
+            async function loadCustomers() {
+                const data = await Storage.get('customers') || [];
+                setCustomers(data);
+            }
+
+            async function handleSave(customerData) {
+                const allCustomers = await Storage.get('customers') || [];
+                
+                if (editingCustomer) {
+                    const index = allCustomers.findIndex(c => c.id === editingCustomer.id);
+                    allCustomers[index] = { ...editingCustomer, ...customerData, updatedAt: new Date().toISOString() };
+                } else {
+                    const newCustomer = {
+                        id: Date.now().toString(),
+                        ...customerData,
+                        createdAt: new Date().toISOString(),
+                        status: '見込み'
+                    };
+                    allCustomers.push(newCustomer);
+                }
+
+                await Storage.set('customers', allCustomers);
+                loadCustomers();
+                setShowModal(false);
+                setEditingCustomer(null);
+            }
+
+            async function handleDelete(id) {
+                if (confirm('この顧客を削除しますか？')) {
+                    const allCustomers = await Storage.get('customers') || [];
+                    const filtered = allCustomers.filter(c => c.id !== id);
+                    await Storage.set('customers', filtered);
+                    loadCustomers();
+                }
+            }
+
+            const filteredCustomers = customers.filter(c =>
+                c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.phone?.includes(searchTerm) ||
+                c.address?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="animate-slide-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold gradient-text">顧客管理</h2>
+                        <button
+                            onClick={() => {
+                                setEditingCustomer(null);
+                                setShowModal(true);
+                            }}
+                            className="btn-primary"
+                        >
+                            ＋ 新規顧客登録
+                        </button>
+                    </div>
+
+                    <div className="stat-card mb-6">
+                        <input
+                            type="text"
+                            placeholder="🔍 顧客名、電話番号、住所で検索..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="stat-card table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>顧客名</th>
+                                    <th>電話番号</th>
+                                    <th>住所</th>
+                                    <th>ステータス</th>
+                                    <th>登録日</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredCustomers.map(customer => (
+                                    <tr key={customer.id}>
+                                        <td className="font-medium">{customer.name}</td>
+                                        <td>{customer.phone}</td>
+                                        <td>{customer.address}</td>
+                                        <td>
+                                            <span className={`badge ${
+                                                customer.status === '完了' ? 'badge-success' :
+                                                customer.status === '施工中' ? 'badge-warning' :
+                                                customer.status === '受注' ? 'badge-info' :
+                                                'badge-secondary'
+                                            }`}>
+                                                {customer.status}
+                                            </span>
+                                        </td>
+                                        <td>{new Date(customer.createdAt).toLocaleDateString('ja-JP')}</td>
+                                        <td>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingCustomer(customer);
+                                                    setShowModal(true);
+                                                }}
+                                                className="text-blue-600 hover:text-blue-800 mr-3"
+                                            >
+                                                編集
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(customer.id)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                削除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {filteredCustomers.length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                顧客が登録されていません
+                            </div>
+                        )}
+                    </div>
+
+                    {showModal && (
+                        <CustomerModal
+                            customer={editingCustomer}
+                            onSave={handleSave}
+                            onClose={() => {
+                                setShowModal(false);
+                                setEditingCustomer(null);
+                            }}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function CustomerModal({ customer, onSave, onClose }) {
+            const [formData, setFormData] = useState({
+                name: customer?.name || '',
+                phone: customer?.phone || '',
+                email: customer?.email || '',
+                address: customer?.address || '',
+                propertyType: customer?.propertyType || '戸建て',
+                notes: customer?.notes || ''
+            });
+
+            function handleSubmit(e) {
+                e.preventDefault();
+                onSave(formData);
+            }
+
+            return (
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+                    <div className="glass-effect rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-auto animate-slide-in">
+                        <h3 className="text-2xl font-bold gradient-text mb-6">
+                            {customer ? '顧客情報編集' : '新規顧客登録'}
+                        </h3>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">顧客名 *</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">電話番号 *</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">メールアドレス</label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">物件種別</label>
+                                    <select
+                                        value={formData.propertyType}
+                                        onChange={(e) => setFormData({...formData, propertyType: e.target.value})}
+                                    >
+                                        <option>戸建て</option>
+                                        <option>マンション</option>
+                                        <option>店舗</option>
+                                        <option>その他</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2">住所</label>
+                                <input
+                                    type="text"
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold mb-2">メモ</label>
+                                <textarea
+                                    rows="4"
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                    placeholder="顧客に関する特記事項..."
+                                />
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button type="submit" className="btn-primary flex-1">
+                                    保存
+                                </button>
+                                <button type="button" onClick={onClose} className="btn-secondary flex-1">
+                                    キャンセル
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== 見積作成（AI機能付き） ====================
+        function Quotations() {
+            const [quotations, setQuotations] = useState([]);
+            const [showModal, setShowModal] = useState(false);
+
+            useEffect(() => {
+                loadQuotations();
+            }, []);
+
+            async function loadQuotations() {
+                const data = await Storage.get('quotations') || [];
+                setQuotations(data);
+            }
+
+            async function handleDelete(id) {
+                if (confirm('この見積を削除しますか？')) {
+                    const all = await Storage.get('quotations') || [];
+                    const filtered = all.filter(q => q.id !== id);
+                    await Storage.set('quotations', filtered);
+                    loadQuotations();
+                }
+            }
+
+            function handlePDF(quotation) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                doc.setFontSize(20);
+                doc.text('見積書', 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.text(`顧客名: ${quotation.customerName}`, 20, 40);
+                doc.text(`作成日: ${new Date(quotation.createdAt).toLocaleDateString('ja-JP')}`, 20, 50);
+                
+                doc.text('見積明細:', 20, 70);
+                
+                let y = 80;
+                quotation.items?.forEach((item, index) => {
+                    doc.text(`${index + 1}. ${item.name} - ¥${item.amount.toLocaleString()}`, 30, y);
+                    y += 10;
+                });
+                
+                doc.setFontSize(14);
+                doc.text(`合計金額: ¥${quotation.totalAmount?.toLocaleString() || 0}`, 20, y + 20);
+                
+                doc.save(`見積書_${quotation.customerName}_${Date.now()}.pdf`);
+            }
+
+            return (
+                <div className="animate-slide-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold gradient-text">AI見積作成</h2>
+                        <button onClick={() => setShowModal(true)} className="btn-primary">
+                            ＋ 新規見積作成
+                        </button>
+                    </div>
+
+                    <div className="stat-card table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>顧客名</th>
+                                    <th>工事内容</th>
+                                    <th>金額</th>
+                                    <th>作成日</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {quotations.map(q => (
+                                    <tr key={q.id}>
+                                        <td className="font-medium">{q.customerName}</td>
+                                        <td>{q.title}</td>
+                                        <td className="font-bold">¥{q.totalAmount?.toLocaleString() || 0}</td>
+                                        <td>{new Date(q.createdAt).toLocaleDateString('ja-JP')}</td>
+                                        <td>
+                                            <button
+                                                onClick={() => handlePDF(q)}
+                                                className="text-blue-600 hover:text-blue-800 mr-3"
+                                            >
+                                                📄 PDF
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(q.id)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                削除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {quotations.length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                見積が作成されていません
+                            </div>
+                        )}
+                    </div>
+
+                    {showModal && (
+                        <QuotationModal
+                            onClose={() => setShowModal(false)}
+                            onSave={async (data) => {
+                                const all = await Storage.get('quotations') || [];
+                                all.push({
+                                    id: Date.now().toString(),
+                                    ...data,
+                                    createdAt: new Date().toISOString()
+                                });
+                                await Storage.set('quotations', all);
+                                loadQuotations();
+                                setShowModal(false);
+                            }}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function QuotationModal({ onClose, onSave }) {
+            const [customerName, setCustomerName] = useState('');
+            const [title, setTitle] = useState('');
+            const [items, setItems] = useState([{ name: '', amount: 0 }]);
+            const [aiAnalyzing, setAiAnalyzing] = useState(false);
+            const fileInputRef = useRef(null);
+
+            function addItem() {
+                setItems([...items, { name: '', amount: 0 }]);
+            }
+
+            function removeItem(index) {
+                const newItems = items.filter((_, i) => i !== index);
+                setItems(newItems);
+            }
+
+            function updateItem(index, field, value) {
+                const newItems = [...items];
+                newItems[index][field] = field === 'amount' ? Number(value) : value;
+                setItems(newItems);
+            }
+
+            async function handleImageAnalysis(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                setAiAnalyzing(true);
+                
+                // シミュレーション: 実際にはAnthropicAPIを使用
+                setTimeout(() => {
+                    setItems([
+                        { name: 'キッチン交換工事', amount: 800000 },
+                        { name: '給排水配管工事', amount: 150000 },
+                        { name: '電気工事', amount: 100000 },
+                        { name: '内装仕上げ', amount: 200000 }
+                    ]);
+                    setTitle('キッチンリフォーム工事');
+                    setAiAnalyzing(false);
+                    alert('AIが写真を解析して見積項目を生成しました！');
+                }, 2000);
+            }
+
+            function handleSubmit(e) {
+                e.preventDefault();
+                const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+                onSave({
+                    customerName,
+                    title,
+                    items,
+                    totalAmount
+                });
+            }
+
+            const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+
+            return (
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+                    <div className="glass-effect rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-auto animate-slide-in">
+                        <h3 className="text-2xl font-bold gradient-text mb-6">AI見積作成</h3>
+
+                        <div className="mb-6 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                            <p className="font-semibold mb-2">🤖 AI機能: 写真から自動見積生成</p>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageAnalysis}
+                                className="hidden"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="btn-primary"
+                                disabled={aiAnalyzing}
+                            >
+                                {aiAnalyzing ? '解析中...' : '📸 現場写真をアップロード'}
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">顧客名 *</label>
+                                    <input
+                                        type="text"
+                                        value={customerName}
+                                        onChange={(e) => setCustomerName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">工事タイトル *</label>
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="text-sm font-semibold">見積明細</label>
+                                    <button type="button" onClick={addItem} className="text-sm text-blue-600 hover:text-blue-800">
+                                        ＋ 項目追加
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {items.map((item, index) => (
+                                        <div key={index} className="flex space-x-2">
+                                            <input
+                                                type="text"
+                                                placeholder="工事項目"
+                                                value={item.name}
+                                                onChange={(e) => updateItem(index, 'name', e.target.value)}
+                                                className="flex-1"
+                                                required
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="金額"
+                                                value={item.amount}
+                                                onChange={(e) => updateItem(index, 'amount', e.target.value)}
+                                                className="w-32"
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeItem(index)}
+                                                className="px-3 text-red-600 hover:text-red-800"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+                                <p className="text-lg font-bold">合計金額: ¥{totalAmount.toLocaleString()}</p>
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button type="submit" className="btn-primary flex-1">
+                                    見積作成
+                                </button>
+                                <button type="button" onClick={onClose} className="btn-secondary flex-1">
+                                    キャンセル
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== 工程管理（ガントチャート） ====================
+        function Schedule() {
+            const [tasks, setTasks] = useState([]);
+            const [showModal, setShowModal] = useState(false);
+
+            useEffect(() => {
+                loadTasks();
+            }, []);
+
+            async function loadTasks() {
+                const data = await Storage.get('tasks') || [];
+                setTasks(data);
+            }
+
+            return (
+                <div className="animate-slide-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold gradient-text">工程管理</h2>
+                        <button onClick={() => setShowModal(true)} className="btn-primary">
+                            ＋ 工程追加
+                        </button>
+                    </div>
+
+                    <div className="stat-card mb-6">
+                        <h3 className="text-lg font-bold mb-4">ガントチャート</h3>
+                        <div className="gantt-chart bg-gray-50 rounded-lg p-4">
+                            {tasks.length === 0 ? (
+                                <div className="text-center text-gray-500 py-8">
+                                    工程が登録されていません
+                                </div>
+                            ) : (
+                                tasks.map((task, index) => (
+                                    <div
+                                        key={task.id}
+                                        className="gantt-bar"
+                                        style={{
+                                            top: `${index * 40}px`,
+                                            left: '10%',
+                                            width: '30%',
+                                            background: `hsl(${index * 60}, 70%, 60%)`
+                                        }}
+                                    >
+                                        {task.name}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="stat-card table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>工程名</th>
+                                    <th>担当者</th>
+                                    <th>開始日</th>
+                                    <th>終了日</th>
+                                    <th>ステータス</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tasks.map(task => (
+                                    <tr key={task.id}>
+                                        <td className="font-medium">{task.name}</td>
+                                        <td>{task.assignee}</td>
+                                        <td>{task.startDate}</td>
+                                        <td>{task.endDate}</td>
+                                        <td>
+                                            <span className={`badge ${
+                                                task.status === '完了' ? 'badge-success' :
+                                                task.status === '進行中' ? 'badge-warning' :
+                                                'badge-info'
+                                            }`}>
+                                                {task.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button className="text-red-600 hover:text-red-800">
+                                                削除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {showModal && (
+                        <TaskModal
+                            onClose={() => setShowModal(false)}
+                            onSave={async (data) => {
+                                const all = await Storage.get('tasks') || [];
+                                all.push({
+                                    id: Date.now().toString(),
+                                    ...data,
+                                    status: '未着手'
+                                });
+                                await Storage.set('tasks', all);
+                                loadTasks();
+                                setShowModal(false);
+                            }}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function TaskModal({ onClose, onSave }) {
+            const [formData, setFormData] = useState({
+                name: '',
+                assignee: '',
+                startDate: '',
+                endDate: ''
+            });
+
+            function handleSubmit(e) {
+                e.preventDefault();
+                onSave(formData);
+            }
+
+            return (
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+                    <div className="glass-effect rounded-2xl p-8 max-w-lg w-full animate-slide-in">
+                        <h3 className="text-2xl font-bold gradient-text mb-6">工程追加</h3>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2">工程名 *</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    required
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2">担当者 *</label>
+                                <input
+                                    type="text"
+                                    value={formData.assignee}
+                                    onChange={(e) => setFormData({...formData, assignee: e.target.value})}
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">開始日 *</label>
+                                    <input
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">終了日 *</label>
+                                    <input
+                                        type="date"
+                                        value={formData.endDate}
+                                        onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button type="submit" className="btn-primary flex-1">
+                                    追加
+                                </button>
+                                <button type="button" onClick={onClose} className="btn-secondary flex-1">
+                                    キャンセル
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== 現場写真管理 ====================
+        function Photos() {
+            const [photos, setPhotos] = useState([]);
+            const fileInputRef = useRef(null);
+
+            useEffect(() => {
+                loadPhotos();
+            }, []);
+
+            async function loadPhotos() {
+                const data = await Storage.get('photos') || [];
+                setPhotos(data);
+            }
+
+            async function handleUpload(e) {
+                const files = Array.from(e.target.files);
+                
+                for (const file of files) {
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        const all = await Storage.get('photos') || [];
+                        all.push({
+                            id: Date.now().toString() + Math.random(),
+                            data: event.target.result,
+                            name: file.name,
+                            uploadedAt: new Date().toISOString()
+                        });
+                        await Storage.set('photos', all);
+                        loadPhotos();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            async function handleDelete(id) {
+                if (confirm('この写真を削除しますか？')) {
+                    const all = await Storage.get('photos') || [];
+                    const filtered = all.filter(p => p.id !== id);
+                    await Storage.set('photos', filtered);
+                    loadPhotos();
+                }
+            }
+
+            return (
+                <div className="animate-slide-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold gradient-text">現場写真管理</h2>
+                        <div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleUpload}
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="btn-primary"
+                            >
+                                📸 写真アップロード
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="stat-card">
+                        {photos.length === 0 ? (
+                            <div className="text-center py-12 text-gray-500">
+                                <p className="text-4xl mb-4">📷</p>
+                                <p>写真がアップロードされていません</p>
+                            </div>
+                        ) : (
+                            <div className="photo-grid">
+                                {photos.map(photo => (
+                                    <div key={photo.id} className="photo-item">
+                                        <img src={photo.data} alt={photo.name} />
+                                        <div className="absolute top-2 right-2">
+                                            <button
+                                                onClick={() => handleDelete(photo.id)}
+                                                className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-red-600"
+                                            >
+                                                削除
+                                            </button>
+                                        </div>
+                                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-xs">
+                                            {new Date(photo.uploadedAt).toLocaleDateString('ja-JP')}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== 在庫管理（QRコード） ====================
+        function Inventory() {
+            const [items, setItems] = useState([]);
+            const [showModal, setShowModal] = useState(false);
+            const [selectedItem, setSelectedItem] = useState(null);
+            const qrRef = useRef(null);
+
+            useEffect(() => {
+                loadItems();
+            }, []);
+
+            async function loadItems() {
+                const data = await Storage.get('inventory') || [];
+                setItems(data);
+            }
+
+            function generateQR(item) {
+                setSelectedItem(item);
+                setTimeout(() => {
+                    if (qrRef.current) {
+                        qrRef.current.innerHTML = '';
+                        new QRCode(qrRef.current, {
+                            text: item.id,
+                            width: 200,
+                            height: 200
+                        });
+                    }
+                }, 100);
+            }
+
+            return (
+                <div className="animate-slide-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold gradient-text">在庫管理</h2>
+                        <button onClick={() => setShowModal(true)} className="btn-primary">
+                            ＋ 資材登録
+                        </button>
+                    </div>
+
+                    <div className="stat-card table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>資材名</th>
+                                    <th>在庫数</th>
+                                    <th>単位</th>
+                                    <th>保管場所</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map(item => (
+                                    <tr key={item.id}>
+                                        <td className="font-medium">{item.name}</td>
+                                        <td>
+                                            <span className={`font-bold ${
+                                                item.quantity < 10 ? 'text-red-600' :
+                                                item.quantity < 30 ? 'text-yellow-600' :
+                                                'text-green-600'
+                                            }`}>
+                                                {item.quantity}
+                                            </span>
+                                        </td>
+                                        <td>{item.unit}</td>
+                                        <td>{item.location}</td>
+                                        <td>
+                                            <button
+                                                onClick={() => generateQR(item)}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                QRコード
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {items.length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                在庫が登録されていません
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedItem && (
+                        <div className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+                            <div className="glass-effect rounded-2xl p-8 max-w-md w-full text-center animate-slide-in">
+                                <h3 className="text-2xl font-bold gradient-text mb-4">QRコード</h3>
+                                <p className="mb-4 font-medium">{selectedItem.name}</p>
+                                <div ref={qrRef} className="flex justify-center mb-6"></div>
+                                <button
+                                    onClick={() => setSelectedItem(null)}
+                                    className="btn-primary"
+                                >
+                                    閉じる
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showModal && (
+                        <InventoryModal
+                            onClose={() => setShowModal(false)}
+                            onSave={async (data) => {
+                                const all = await Storage.get('inventory') || [];
+                                all.push({
+                                    id: Date.now().toString(),
+                                    ...data
+                                });
+                                await Storage.set('inventory', all);
+                                loadItems();
+                                setShowModal(false);
+                            }}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function InventoryModal({ onClose, onSave }) {
+            const [formData, setFormData] = useState({
+                name: '',
+                quantity: 0,
+                unit: '個',
+                location: ''
+            });
+
+            function handleSubmit(e) {
+                e.preventDefault();
+                onSave(formData);
+            }
+
+            return (
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+                    <div className="glass-effect rounded-2xl p-8 max-w-lg w-full animate-slide-in">
+                        <h3 className="text-2xl font-bold gradient-text mb-6">資材登録</h3>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2">資材名 *</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">在庫数 *</label>
+                                    <input
+                                        type="number"
+                                        value={formData.quantity}
+                                        onChange={(e) => setFormData({...formData, quantity: Number(e.target.value)})}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">単位</label>
+                                    <select
+                                        value={formData.unit}
+                                        onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                                    >
+                                        <option>個</option>
+                                        <option>本</option>
+                                        <option>枚</option>
+                                        <option>m</option>
+                                        <option>kg</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold mb-2">保管場所</label>
+                                <input
+                                    type="text"
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button type="submit" className="btn-primary flex-1">
+                                    登録
+                                </button>
+                                <button type="button" onClick={onClose} className="btn-secondary flex-1">
+                                    キャンセル
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== AIチャットボット ====================
+        function Chatbot() {
+            const [messages, setMessages] = useState([
+                { role: 'assistant', content: 'こんにちは！ReformOSのAIアシスタントです。何かお困りですか？' }
+            ]);
+            const [input, setInput] = useState('');
+            const messagesEndRef = useRef(null);
+
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages]);
+
+            async function handleSend() {
+                if (!input.trim()) return;
+
+                const userMessage = { role: 'user', content: input };
+                setMessages(prev => [...prev, userMessage]);
+                setInput('');
+
+                // シミュレーション: 実際にはAnthropicAPIを使用
+                setTimeout(() => {
+                    let response = '';
+                    
+                    if (input.includes('見積')) {
+                        response = '見積作成をご希望ですね。「見積作成」ページから、写真をアップロードするだけでAIが自動で見積を生成できます。';
+                    } else if (input.includes('顧客')) {
+                        response = '顧客管理機能では、顧客情報の登録・検索・編集が可能です。案件ステータスも一目で確認できます。';
+                    } else if (input.includes('工程')) {
+                        response = '工程管理機能では、ガントチャートで工事スケジュールを視覚的に管理できます。担当者のアサインや進捗追跡も簡単です。';
+                    } else {
+                        response = 'ご質問ありがとうございます。具体的な機能についてお知りになりたい場合は、「顧客管理」「見積作成」「工程管理」などとお聞きください。';
+                    }
+
+                    setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+                }, 1000);
+            }
+
+            function handleKeyPress(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            }
+
+            return (
+                <div className="animate-slide-in max-w-4xl mx-auto">
+                    <h2 className="text-3xl font-bold gradient-text mb-6">AIチャットボット</h2>
+
+                    <div className="stat-card" style={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
+                        <div className="flex-1 overflow-auto mb-4 space-y-4">
+                            {messages.map((msg, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                >
+                                    <div
+                                        className={`max-w-[70%] p-4 rounded-2xl ${
+                                            msg.role === 'user'
+                                                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                                                : 'bg-gray-100 text-gray-800'
+                                        }`}
+                                    >
+                                        {msg.content}
+                                    </div>
+                                </div>
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        <div className="flex space-x-2">
+                            <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="メッセージを入力..."
+                                className="flex-1"
+                            />
+                            <button onClick={handleSend} className="btn-primary">
+                                送信
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button
+                            onClick={() => {
+                                setInput('見積の作り方を教えてください');
+                                setTimeout(handleSend, 100);
+                            }}
+                            className="p-4 bg-white rounded-lg shadow hover:shadow-lg transition-all text-left"
+                        >
+                            <p className="font-semibold mb-1">💡 見積の作り方</p>
+                            <p className="text-sm text-gray-600">AI見積機能の使い方</p>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setInput('顧客管理について教えてください');
+                                setTimeout(handleSend, 100);
+                            }}
+                            className="p-4 bg-white rounded-lg shadow hover:shadow-lg transition-all text-left"
+                        >
+                            <p className="font-semibold mb-1">👥 顧客管理</p>
+                            <p className="text-sm text-gray-600">顧客情報の管理方法</p>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setInput('工程管理について教えてください');
+                                setTimeout(handleSend, 100);
+                            }}
+                            className="p-4 bg-white rounded-lg shadow hover:shadow-lg transition-all text-left"
+                        >
+                            <p className="font-semibold mb-1">📅 工程管理</p>
+                            <p className="text-sm text-gray-600">スケジュール管理</p>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== メインレンダリング ====================
+        function Main() {
+            return (
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Main />);
+    </script>
+</body>
+</html>
